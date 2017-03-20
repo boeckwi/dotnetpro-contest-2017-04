@@ -410,10 +410,13 @@
                     return;
                 }
 
-                this.drawUnderscore();
+                if (this.blinkAnimation > 420) {
+                    this.startScrolling();
+                    return;
+                }
 
-                if (this.blinkAnimation > delay + 20) {
-                    this.blinkAnimation = delay - 20;
+                if ((this.blinkAnimation - delay) % 40 < 20) { // blink
+                    this.drawUnderscore();
                 }
             }
 
@@ -452,17 +455,18 @@
                     this.score.charHit();
                     this.removeNextChar();
 
-                    this.firstCharTyped();
-                    this.firstCharTyped = () => { };
+                    this.startScrolling();
                 } else {
                     this.score.charMissed();
                 }
             }
 
-            this.firstCharTyped = function () {
+            this.startScrolling = function () {
                 this.hud_visible = true;
                 this.tick = this.tick_scroll;
                 starfield = new Starfield();
+                console.log("START SCROLLING");
+                this.startScrolling = () => { };
             }
 
             this.delayText = function () {

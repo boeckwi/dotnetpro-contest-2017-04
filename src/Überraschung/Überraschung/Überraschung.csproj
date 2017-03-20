@@ -7,7 +7,7 @@
     <ProjectGuid>{1611BC13-69E1-4285-B79F-9C1D8551AD7D}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Überraschung</RootNamespace>
-    <AssemblyName>Überraschung</AssemblyName>
+    <AssemblyName>ueberraschung</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="DemoStart.bat" />
   </ItemGroup>
   <ItemGroup>
     <None Include="DemoInput.txt" />

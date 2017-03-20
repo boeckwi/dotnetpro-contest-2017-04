@@ -10,7 +10,7 @@ namespace Überraschung
     {
         static readonly string[] FallbackLines = new[]
         {
-            "asdf"
+            "Hier könnte der Inhalt ihrer Textdatei stehen."
         };
 
         static void Main(string[] args)
@@ -25,12 +25,15 @@ namespace Überraschung
 
             var outfile = GetNewOutputFilenameInDirectory(outputDirectory);
 
-            File.WriteAllText(outfile.FullName, html);
+            File.WriteAllText(outfile.FullName, html, Encoding.UTF8);
             Console.WriteLine(outfile.Name);
         }
 
         static FileInfo GetNewOutputFilenameInDirectory(DirectoryInfo outputDirectory)
         {
+            var defaultFile = new FileInfo(Path.Combine(outputDirectory.FullName, "output.html"));
+            if (!defaultFile.Exists) return defaultFile;
+
             return new FileInfo(Path.Combine(outputDirectory.FullName, Guid.NewGuid().ToString() + ".html"));
         }
 
@@ -43,7 +46,7 @@ namespace Überraschung
         {
             try
             {
-                return new DirectoryInfo(Path.GetDirectoryName(args[0]));
+                return new DirectoryInfo(Path.GetDirectoryName(new FileInfo(args[0]).FullName));
             }
             catch (Exception ex)
             {

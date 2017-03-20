@@ -1,552 +1,551 @@
 <html>
-    <head>
-        <script src="libraries/p5.min.js"></script>
-        <script type="text/javascript">
-
-function Starfield() {
-	this.stars = [];
-
-	this.speed = 1;
-
-    for (var i = 0; i < 800; i++) {
-	  this.stars[i] = new Star();
-    }
-
-	this.draw = function() {
-	  translate(width / 2, height / 2);
-	  this.stars.forEach(s => {
-		s.update();
-		s.show();
-	  });
-		this.drawStage();
-	  translate(-width / 2, -height / 2);
-
-	  this.move();
-	}
-
-	this.move = () => {};
-	this.drawStage = () => {};
-
-	this.initHyperspeed = function(stageIndex, callback) {
-		this.stageIndex = stageIndex;
-		this.animation = 0;
-		this.move = this.hyperspeed_animation;
-		this.afterHyperspeed = callback;
-		console.log(this.animation);
-	}
-
-	this.hyperspeed_animation = function() {
-		this.animation++;
-
-		var total = 100;
-		var step = 1;
-
-		if(this.animation < total / 3) {
-			this.speed += step;
-		} else {
-			this.speed -= step;
-			if(this.speed < 1) this.speed = 1;
-		}
-
-		if(this.animation > total / 2) {
-			this.drawStage = () => {
-				textAlign(CENTER);
-				stroke(255);
-				noStroke();
-				fill(50, 100, 200);
-				text("STAGE " + (this.stageIndex + 1), 0, 0);
-			};
-		}
-
-		if (this.animation >= total) {
-			this.afterHyperspeed();
-			this.move = () => {};
-			this.drawStage = () => {};
-			return;
-		}
-
-	}
-}
-
-function Star() {
-  this.x = random(-width, width);
-  this.y = random(-height, height);
-  this.z = random(width);
-  this.pz = this.z;
-
-  this.update = function() {
-    this.z = this.z - starfield.speed;
-    if (this.z < 1) {
-      this.z = width;
-      this.x = random(-width, width);
-      this.y = random(-height, height);
-      this.pz = this.z;
-    }
-  }
-
-  this.show = function() {
-    fill(255);
-    noStroke();
-
-    var sx = map(this.x / this.z, 0, 1, 0, width);
-    var sy = map(this.y / this.z, 0, 1, 0, height);
-
-    var r = map(this.z, 0, width, 4, 0);
-    ellipse(sx, sy, r, r);
-
-    var px = map(this.x / this.pz, 0, 1, 0, width);
-    var py = map(this.y / this.pz, 0, 1, 0, height);
-
-    this.pz = this.z;
-
-    stroke(255);
-    line(px, py, sx, sy);
-
-  }
-}
-
-
-function setupGlobal() {
-   setFont1 = function () {
-       fill(color('#7DB0FF'));
-       textSize(36);
-       textFont("Courier New");
-       textStyle(BOLD);
-       strokeWeight(0);
-        textAlign(LEFT);
-   };
-
-    setFont2 = function () {
-        fill(color('#DDDD3F'));
-        textSize(24);
-        textFont("Courier New");
-        textStyle(BOLD);
-        strokeWeight(0);
-        textAlign(LEFT);
-    }
-}
-
-
-
-
-function Highscores() {
-    this.ranks = [
-        { name: "W*B", score: 1000 },
-        { name: "VHW", score: 800 },
-        { name: "BUK", score: 600 },
-        { name: "LUW", score: 400 },
-        { name: "DOH", score: 200 }
-    ];
-
-    this.draw = function () {
-        setFont2();
-
-        textAlign(CENTER);
-        text("HIGHSCORES", width/2, 30);
-        text("<ENTER>", width/2, height-10);
-
-        for(var i=0; i < this.ranks.length; i++) {
-            var r = this.ranks[i];
-            var y = 80 + i * 30;
-
-
-            textAlign(RIGHT);
-            text(r.score.toLocaleString(), width/2 - 10, y);
-
-            textAlign(LEFT);
-            text(r.name, width/2 + 30, y);
-        }
-    }
-
-    this.keyPressed = function () {
-        if(keyCode === 13) {
-            this.nextScene = new Game();
-        }
-    }
-
-    this.canBeInserted = function(score) {
-        return score > this.ranks[this.ranks.length - 1].score;
-    }
-
-    this.insertScore = function (name, score) {
-        this.ranks.push({name: name, score: score});
-
-        this.ranks = this.ranks.sort(function(a, b) {
-            if(a.score < b.score) return 1;
-            if(a.score > b.score) return -1;
-            return 0;
-        });
-        this.ranks.pop();
-    }
-}
-
-
-
-
-
-function Score() {
-    'use strict';
-
-    this.points = 0;
-    this.nextScoreOffset = 0;
-
-    this.charHit = function () {
-        var score = 100 + this.nextScoreOffset;
-        if(score > 0) {
-            this.points += score;
-        }
-        this.nextScoreOffset = 0;
-    }
-
-    this.stageCleared = function () {
-
-    }
-
-    this.charMissed = function() {
-        this.nextScoreOffset -= 20;
-    }
-}
-
-
-
-function Gameover(score) {
-    'use strict';
-
-    this.name = "___";
-    this.nameIndex = 0;
-
-    this.score = score || new Score();
-
-    this.setup = function () {
-        if(highscores.canBeInserted(this.score.points)) {
-            this.setupWithHighscore();
-        } else {
-            this.setupWithoutHighscore();
-        }
-    }
-
-    this.setupWithHighscore = function () {
-        this.keyPressed = this.keyPressedWithHighscore;
-        this.getMessage = function () {
-            return "ENTER YOUR INITIALS: " + this.name
-        }
-    }
-
-    this.setupWithoutHighscore = function () {
-        this.keyPressed = this.keyPressedWithoutHighscore;
-        this.getMessage = function () {
-            return "<ENTER>";
-        };
-    }
-
-    this.draw = function () {
-        var offset_y = 30;
-
-        var line = function () {
-            offset_y += 30;
-            return offset_y;
-        };
-
-        setFont2();
-        textAlign(CENTER);
-
-        text("YOUR SCORE: " + this.score.points.toLocaleString(), width/2, height*1/3);
-
-        text(this.getMessage(), width/2, height*2/3);
-    }
-
-    this.keyPressedWithHighscore = function () {
-        var keyChar = char(keyCode).toUpperCase();
-        if (/[A-Z]/.test(keyChar)) {
-            this.allowedLetterPressed(keyChar);
-        }
-    }
-
-    this.keyPressedWithoutHighscore = function () {
-        if (keyCode === 13) {
-            this.exit();
-        }
-    }
-
-    this.exit = function () {
-        this.nextScene = highscores;
-    }
-
-    this.allowedLetterPressed = function (letter) {
-        this.name = this.replaceAt(this.name, this.nameIndex, letter);
-        if(this.name[this.nameIndex+1]) {
-            this.nameIndex ++;
-        } else {
-            highscores.insertScore(this.name, this.score.points);
-            this.exit();
-        }
-    }
-
-    this.replaceAt = function(text, index, character) {
-        return text.substr(0, index) + character + text.substr(index + character.length);
-    }
-}
-
-
-
-
-function Game() {
-    'use strict';
-
-    this.score = new Score();
-    this.textArray = ["asdf", "Lorem ipsum dolor sit amet.", "asdf", "asdf", "asdf"];
-    this.lives = 3;
-    this.speed = 1;
-    this.stageIndex = 0;
-    this.specialAnimation = 0;
-
-
-    this.setup = function () {
-        this.stageSpecials = [
-          this.noSpecial,
-          this.sinusSpecial,
-          this.cosinusSpecial,
-          this.crazySpecial
-        ];
-        this.stageCount = this.textArray.length;
-        this.beforeStage();
-        this.tick = this.tick_waitForFirstKey;
-    };
-
-    this.beforeStage = function () {
-        this.text_x = width / 2;
-        this.text_y = height / 2;
-        this.text = this.textArray.shift();
-        this.removedLettersInThisStage = 0;
-        this.totalLettersInThisStage = this.text.length;
-        this.tick = this.tick_scroll;
-        this.blinkAnimation = 0;
-        this.scrollAnimation = 0;
-        this.speed = this.stageIndex + 1;
-        if(this.speed > 10) {
-            this.speed = 10;
+<head>
+    <script src="libraries/p5.min.js"></script>
+    <script type="text/javascript">
+
+        function Starfield() {
+            this.stars = [];
+            this.speed = 1;
+
+            for (var i = 0; i < 800; i++) {
+                this.stars[i] = new Star();
+            }
+
+            this.draw = function () {
+                translate(width / 2, height / 2);
+                this.stars.forEach(s => {
+                    s.update();
+                    s.show();
+                });
+                this.drawStage();
+                translate(-width / 2, -height / 2);
+
+                this.move();
+            }
+
+            this.move = () => { };
+            this.drawStage = () => { };
+
+            this.initHyperspeed = function (stageIndex, callback) {
+                this.stageIndex = stageIndex;
+                this.animation = 0;
+                this.move = this.hyperspeed_animation;
+                this.afterHyperspeed = callback;
+                console.log(this.animation);
+            }
+
+            this.hyperspeed_animation = function () {
+                this.animation++;
+
+                var total = 100;
+                var step = 1;
+
+                if (this.animation < total / 3) {
+                    this.speed += step;
+                } else {
+                    this.speed -= step;
+                    if (this.speed < 1) this.speed = 1;
+                }
+
+                if (this.animation > total / 2) {
+                    this.drawStage = () => {
+                        textAlign(CENTER);
+                        stroke(255);
+                        noStroke();
+                        fill(50, 100, 200);
+                        text("STAGE " + (this.stageIndex + 1), 0, 0);
+                    };
+                }
+
+                if (this.animation >= total) {
+                    this.afterHyperspeed();
+                    this.move = () => { };
+                    this.drawStage = () => { };
+                    return;
+                }
+
+            }
         }
 
-        var specialIndex = this.stageIndex % this.stageSpecials.length;
-        this.stageSpecial = this.stageSpecials[specialIndex];
-        this.specialAnimation = 0;
-    }
+        function Star() {
+            this.x = random(-width, width);
+            this.y = random(-height, height);
+            this.z = random(width);
+            this.pz = this.z;
 
-    this.afterStage = function () {
-        this.stageIndex ++;
+            this.update = function () {
+                this.z = this.z - starfield.speed;
+                if (this.z < 1) {
+                    this.z = width;
+                    this.x = random(-width, width);
+                    this.y = random(-height, height);
+                    this.pz = this.z;
+                }
+            }
 
-		var that = this;
+            this.show = function () {
+                fill(255);
+                noStroke();
 
-		starfield.initHyperspeed(this.stageIndex, () => {
-			scene = that;
-			that.beforeStage();
-		});
+                var sx = map(this.x / this.z, 0, 1, 0, width);
+                var sy = map(this.y / this.z, 0, 1, 0, height);
 
-		this.nextScene = starfield;
-    }
+                var r = map(this.z, 0, width, 4, 0);
+                ellipse(sx, sy, r, r);
 
-    this.draw = function () {
-        if(this.hud_visible) {
-            this.drawHud();
-            this.stageSpecial();
-            this.specialAnimation++;
-            if(this.specialAnimation > 1000000) this.specialAnimation = 0;
+                var px = map(this.x / this.pz, 0, 1, 0, width);
+                var py = map(this.y / this.pz, 0, 1, 0, height);
+
+                this.pz = this.z;
+
+                stroke(255);
+                line(px, py, sx, sy);
+
+            }
         }
 
-        setFont1();
-        text(this.text, this.text_x, this.text_y);
 
-        this.tick();
+        function setupGlobal() {
+            setFont1 = function () {
+                fill(color('#7DB0FF'));
+                textSize(36);
+                textFont("Courier New");
+                textStyle(BOLD);
+                strokeWeight(0);
+                textAlign(LEFT);
+            };
 
-    };
-
-    this.noSpecial = function() { }
-
-    this.crazySpecial = function() {
-
-        this.text_y = height - 60 - Math.abs(Math.sin(this.specialAnimation * 0.2)) * 90;
-
-        this.speed = Math.cos(this.specialAnimation * 0.1) * 8 + 6;
-    }
-
-    this.sinusSpecial = function() {
-        this.text_y = height/2 + Math.sin(this.specialAnimation * 0.1) * 40;
-    }
-
-    this.cosinusSpecial = function() {
-        this.speed = Math.cos(this.specialAnimation * 0.1) * 4 + 2;
-    }
-
-
-    this.drawHud = function () {
-        setFont2();
-
-        text("STAGE: " + (this.stageIndex + 1) + "/" + this.stageCount, 10, 24);
-        text("SCORE: " + this.score.points.toLocaleString(), 10, height - 10);
-
-        textAlign(RIGHT);
-
-        var letterPercent = this.removedLettersInThisStage * 100 / this.totalLettersInThisStage;
-        text(letterPercent.toFixed(1) + "%", width - 10, 24);
-
-        if(!this.lives) fill('#DD0000');
-        text("LIVES: " + this.lives, width - 10, height - 10);
-    }
-
-    this.tick_scroll = function () {
-        this.scrollAnimation++;
-        this.drawUnderscore();
-        this.text_x -= this.speed;
-        while(this.text_x < 0 && this.lives) {
-            this.killLetter();
-        }
-    }
-
-    this.tick_waitForFirstKey = function () {
-        this.blinkAnimation ++;
-
-        var delay = 240;
-
-        if(this.blinkAnimation < delay) {
-            return;
+            setFont2 = function () {
+                fill(color('#DDDD3F'));
+                textSize(24);
+                textFont("Courier New");
+                textStyle(BOLD);
+                strokeWeight(0);
+                textAlign(LEFT);
+            }
         }
 
-        this.drawUnderscore();
 
-        if(this.blinkAnimation > delay + 20) {
-            this.blinkAnimation = delay - 20;
+
+
+        function Highscores() {
+            this.ranks = [
+                { name: "W*B", score: 1000 },
+                { name: "VHW", score: 800 },
+                { name: "BUK", score: 600 },
+                { name: "LUW", score: 400 },
+                { name: "DOH", score: 200 }
+            ];
+
+            this.draw = function () {
+                setFont2();
+
+                textAlign(CENTER);
+                text("HIGHSCORES", width / 2, 30);
+                text("<ENTER>", width / 2, height - 10);
+
+                for (var i = 0; i < this.ranks.length; i++) {
+                    var r = this.ranks[i];
+                    var y = 80 + i * 30;
+
+
+                    textAlign(RIGHT);
+                    text(r.score.toLocaleString(), width / 2 - 10, y);
+
+                    textAlign(LEFT);
+                    text(r.name, width / 2 + 30, y);
+                }
+            }
+
+            this.keyPressed = function () {
+                if (keyCode === 13) {
+                    this.nextScene = new Game();
+                }
+            }
+
+            this.canBeInserted = function (score) {
+                return score > this.ranks[this.ranks.length - 1].score;
+            }
+
+            this.insertScore = function (name, score) {
+                this.ranks.push({ name: name, score: score });
+
+                this.ranks = this.ranks.sort(function (a, b) {
+                    if (a.score < b.score) return 1;
+                    if (a.score > b.score) return -1;
+                    return 0;
+                });
+                this.ranks.pop();
+            }
         }
-    }
 
-    this.tick_die = function () {
-        if(this.text.length > 20) {
-            var skip = 10;
-            this.text = this.text.substr(skip);
-            this.removedLettersInThisStage += skip;
+
+
+
+
+        function Score() {
+            'use strict';
+
+            this.points = 0;
+            this.nextScoreOffset = 0;
+
+            this.charHit = function () {
+                var score = 100 + this.nextScoreOffset;
+                if (score > 0) {
+                    this.points += score;
+                }
+                this.nextScoreOffset = 0;
+            }
+
+            this.stageCleared = function () {
+
+            }
+
+            this.charMissed = function () {
+                this.nextScoreOffset -= 20;
+            }
         }
 
-        this.removeNextChar();
-    }
 
-    this.drawUnderscore = function () {
-        fill(color('#EEFFEE'));
-        text("_", this.text_x, this.text_y);
-    }
 
-    this.getNextCharWidth = function () {
-        return textWidth(this.text.substr(0, 1));
-    }
+        function Gameover(score) {
+            'use strict';
 
-    this.killLetter = function () {
-        if(!--this.lives) {
-            this.tick = this.tick_die;
-            return;
+            this.name = "___";
+            this.nameIndex = 0;
+
+            this.score = score || new Score();
+
+            this.setup = function () {
+                if (highscores.canBeInserted(this.score.points)) {
+                    this.setupWithHighscore();
+                } else {
+                    this.setupWithoutHighscore();
+                }
+            }
+
+            this.setupWithHighscore = function () {
+                this.keyPressed = this.keyPressedWithHighscore;
+                this.getMessage = function () {
+                    return "ENTER YOUR INITIALS: " + this.name
+                }
+            }
+
+            this.setupWithoutHighscore = function () {
+                this.keyPressed = this.keyPressedWithoutHighscore;
+                this.getMessage = function () {
+                    return "<ENTER>";
+                };
+            }
+
+            this.draw = function () {
+                var offset_y = 30;
+
+                var line = function () {
+                    offset_y += 30;
+                    return offset_y;
+                };
+
+                setFont2();
+                textAlign(CENTER);
+
+                text("YOUR SCORE: " + this.score.points.toLocaleString(), width / 2, height * 1 / 3);
+
+                text(this.getMessage(), width / 2, height * 2 / 3);
+            }
+
+            this.keyPressedWithHighscore = function () {
+                var keyChar = char(keyCode).toUpperCase();
+                if (/[A-Z]/.test(keyChar)) {
+                    this.allowedLetterPressed(keyChar);
+                }
+            }
+
+            this.keyPressedWithoutHighscore = function () {
+                if (keyCode === 13) {
+                    this.exit();
+                }
+            }
+
+            this.exit = function () {
+                this.nextScene = highscores;
+            }
+
+            this.allowedLetterPressed = function (letter) {
+                this.name = this.replaceAt(this.name, this.nameIndex, letter);
+                if (this.name[this.nameIndex + 1]) {
+                    this.nameIndex++;
+                } else {
+                    highscores.insertScore(this.name, this.score.points);
+                    this.exit();
+                }
+            }
+
+            this.replaceAt = function (text, index, character) {
+                return text.substr(0, index) + character + text.substr(index + character.length);
+            }
         }
 
-        this.text_x += this.getNextCharWidth() * 5;
-        this.removeNextChar();
-    }
 
-    this.keyTyped = function() {
-        if (this.isNextChar(key)) {
-            this.delayText();
-            this.score.charHit();
-            this.removeNextChar();
 
-			this.firstCharTyped();
-			this.firstCharTyped = () => {};
-        } else {
-            this.score.charMissed();
+
+        function Game() {
+            'use strict';
+
+            this.score = new Score();
+            this.textArray = ["asdf", "Lorem ipsum dolor sit amet.", "asdf", "asdf", "asdf"];
+            this.lives = 3;
+            this.speed = 1;
+            this.stageIndex = 0;
+            this.specialAnimation = 0;
+
+
+            this.setup = function () {
+                this.stageSpecials = [
+                    this.noSpecial,
+                    this.sinusSpecial,
+                    this.cosinusSpecial,
+                    this.crazySpecial
+                ];
+                this.stageCount = this.textArray.length;
+                this.beforeStage();
+                this.tick = this.tick_waitForFirstKey;
+            };
+
+            this.beforeStage = function () {
+                this.text_x = width / 2;
+                this.text_y = height / 2;
+                this.text = this.textArray.shift();
+                this.removedLettersInThisStage = 0;
+                this.totalLettersInThisStage = this.text.length;
+                this.tick = this.tick_scroll;
+                this.blinkAnimation = 0;
+                this.scrollAnimation = 0;
+                this.speed = this.stageIndex + 1;
+                if (this.speed > 10) {
+                    this.speed = 10;
+                }
+
+                var specialIndex = this.stageIndex % this.stageSpecials.length;
+                this.stageSpecial = this.stageSpecials[specialIndex];
+                this.specialAnimation = 0;
+            }
+
+            this.afterStage = function () {
+                this.stageIndex++;
+
+                var that = this;
+
+                starfield.initHyperspeed(this.stageIndex, () => {
+                    scene = that;
+                    that.beforeStage();
+                });
+
+                this.nextScene = starfield;
+            }
+
+            this.draw = function () {
+                if (this.hud_visible) {
+                    this.drawHud();
+                    this.stageSpecial();
+                    this.specialAnimation++;
+                    if (this.specialAnimation > 1000000) this.specialAnimation = 0;
+                }
+
+                setFont1();
+                text(this.text, this.text_x, this.text_y);
+
+                this.tick();
+
+            };
+
+            this.noSpecial = function () { }
+
+            this.crazySpecial = function () {
+
+                this.text_y = height - 60 - Math.abs(Math.sin(this.specialAnimation * 0.2)) * 90;
+
+                this.speed = Math.cos(this.specialAnimation * 0.1) * 8 + 6;
+            }
+
+            this.sinusSpecial = function () {
+                this.text_y = height / 2 + Math.sin(this.specialAnimation * 0.1) * 40;
+            }
+
+            this.cosinusSpecial = function () {
+                this.speed = Math.cos(this.specialAnimation * 0.1) * 4 + 2;
+            }
+
+
+            this.drawHud = function () {
+                setFont2();
+
+                text("STAGE: " + (this.stageIndex + 1) + "/" + this.stageCount, 10, 24);
+                text("SCORE: " + this.score.points.toLocaleString(), 10, height - 10);
+
+                textAlign(RIGHT);
+
+                var letterPercent = this.removedLettersInThisStage * 100 / this.totalLettersInThisStage;
+                text(letterPercent.toFixed(1) + "%", width - 10, 24);
+
+                if (!this.lives) fill('#DD0000');
+                text("LIVES: " + this.lives, width - 10, height - 10);
+            }
+
+            this.tick_scroll = function () {
+                this.scrollAnimation++;
+                this.drawUnderscore();
+                this.text_x -= this.speed;
+                while (this.text_x < 0 && this.lives) {
+                    this.killLetter();
+                }
+            }
+
+            this.tick_waitForFirstKey = function () {
+                this.blinkAnimation++;
+
+                var delay = 240;
+
+                if (this.blinkAnimation < delay) {
+                    return;
+                }
+
+                this.drawUnderscore();
+
+                if (this.blinkAnimation > delay + 20) {
+                    this.blinkAnimation = delay - 20;
+                }
+            }
+
+            this.tick_die = function () {
+                if (this.text.length > 20) {
+                    var skip = 10;
+                    this.text = this.text.substr(skip);
+                    this.removedLettersInThisStage += skip;
+                }
+
+                this.removeNextChar();
+            }
+
+            this.drawUnderscore = function () {
+                fill(color('#EEFFEE'));
+                text("_", this.text_x, this.text_y);
+            }
+
+            this.getNextCharWidth = function () {
+                return textWidth(this.text.substr(0, 1));
+            }
+
+            this.killLetter = function () {
+                if (!--this.lives) {
+                    this.tick = this.tick_die;
+                    return;
+                }
+
+                this.text_x += this.getNextCharWidth() * 5;
+                this.removeNextChar();
+            }
+
+            this.keyTyped = function () {
+                if (this.isNextChar(key)) {
+                    this.delayText();
+                    this.score.charHit();
+                    this.removeNextChar();
+
+                    this.firstCharTyped();
+                    this.firstCharTyped = () => { };
+                } else {
+                    this.score.charMissed();
+                }
+            }
+
+            this.firstCharTyped = function () {
+                this.hud_visible = true;
+                this.tick = this.tick_scroll;
+                starfield = new Starfield();
+            }
+
+            this.delayText = function () {
+                this.text_x += this.getNextCharWidth();
+                var max_x = width * 3 / 4;
+                if (this.text_x > max_x) {
+                    this.text_x = max_x;
+                }
+            }
+
+            this.isNextChar = function (keyString) {
+                return this.text[0].toUpperCase() === keyString.toUpperCase();
+            }
+
+            this.removeNextChar = function () {
+                this.removedLettersInThisStage++;
+                this.text = this.text.substring(1);
+                if (!this.text) {
+                    this.stageCleared();
+                }
+            }
+
+            this.stageCleared = function () {
+
+                this.score.stageCleared();
+
+                if (this.textArray.length && this.lives) {
+                    this.afterStage();
+                } else {
+                    this.nextScene = new Gameover(this.score);
+                }
+            }
         }
-    }
-
-	this.firstCharTyped = function() {
-		this.hud_visible = true;
-		this.tick = this.tick_scroll;
-		starfield = new Starfield();
-	}
-
-    this.delayText = function () {
-        this.text_x += this.getNextCharWidth();
-        var max_x = width * 3 / 4;
-        if(this.text_x > max_x) {
-            this.text_x = max_x;
-        }
-    }
-
-    this.isNextChar = function(keyString) {
-        return this.text[0].toUpperCase() === keyString.toUpperCase();
-    }
-
-    this.removeNextChar = function() {
-        this.removedLettersInThisStage++;
-        this.text = this.text.substring(1);
-        if(!this.text) {
-            this.stageCleared();
-        }
-    }
-
-    this.stageCleared = function() {
-
-        this.score.stageCleared();
-
-        if (this.textArray.length && this.lives) {
-            this.afterStage();
-        } else {
-            this.nextScene = new Gameover(this.score);
-        }
-    }
-}
 
 
 
-var starfield;
-var highscores = new Highscores();
-var scene = new Game();
+        var starfield;
+        var highscores = new Highscores();
+        var scene = new Game();
 
-function setup() {
-    createCanvas(800, 240);
+        function setup() {
+            createCanvas(800, 240);
 
-    setupGlobal();
-    setupScene();
-}
-
-function setupScene() {
-    if (scene.setup) {
-        scene.setup();
-    }
-}
-
-function draw() {
-
-	background(11);
-
-	if(starfield) starfield.draw();
-
-    if(scene.draw) {
-        var nextScene = scene.draw();
-
-        if(scene.nextScene) {
-            var nextScene = scene.nextScene;
-            scene.nextScene = null;
-            scene = nextScene;
+            setupGlobal();
             setupScene();
         }
-    }
-}
+
+        function setupScene() {
+            if (scene.setup) {
+                scene.setup();
+            }
+        }
+
+        function draw() {
+
+            background(11);
+
+            if (starfield) starfield.draw();
+
+            if (scene.draw) {
+                var nextScene = scene.draw();
+
+                if (scene.nextScene) {
+                    var nextScene = scene.nextScene;
+                    scene.nextScene = null;
+                    scene = nextScene;
+                    setupScene();
+                }
+            }
+        }
 
 
-function keyPressed() {
-    if(scene.keyPressed) {
-        scene.keyPressed();
-    }
-}
+        function keyPressed() {
+            if (scene.keyPressed) {
+                scene.keyPressed();
+            }
+        }
 
-function keyTyped() {
-    if(scene.keyTyped) {
-        scene.keyTyped();
-    }
-}
-        </script>
-    </head>
+        function keyTyped() {
+            if (scene.keyTyped) {
+                scene.keyTyped();
+            }
+        }
+    </script>
+</head>
 </html>

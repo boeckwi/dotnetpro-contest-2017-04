@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -50,11 +51,6 @@ namespace Überraschung
             }
         }
 
-        string GetOutputfilename()
-        {
-            throw new NotImplementedException();
-        }
-
         static string ReadInputFileOrReturnExceptionStackTrace(string[] args)
         {
             try
@@ -69,12 +65,47 @@ namespace Überraschung
 
         static string[] ExtractParagraphsAsStringsOrReturnNull(string input)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return input.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         static string GenerateHtml(string[] lines)
         {
-            throw new NotImplementedException();
+            var template = GetTemplate();
+
+            var js_textarray = string.Join(",\r\n", lines.Select(line => string.Format("\"{0}\"", Cleanup(line))));
+
+            return template.Replace("%%JS_TEXTARRAY%%", js_textarray);
+        }
+
+        static string Cleanup(string line) // remove chars that are not easy to type
+        {
+            return line.Replace("\"", "");
+        }
+
+        public static string GetTemplate()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = "Überraschung.template.html";
+
+            string xml;
+
+            using (var stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                if (stream == null) throw new ArgumentException("Resource nicht gefunden: " + resourceName);
+
+                using (var reader = new StreamReader(stream))
+                {
+                    xml = reader.ReadToEnd();
+                }
+            }
+            return xml;
         }
     }
 }

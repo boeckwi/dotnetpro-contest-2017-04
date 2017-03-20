@@ -20,15 +20,60 @@ function Starfield() {
     for (var i = 0; i < 800; i++) {
 	  this.stars[i] = new Star();
     }
-
+	
 	this.draw = function() {
-	  //this.speed = map(mouseX, 0, width, 0, 50);
 	  translate(width / 2, height / 2);
-	  for (var i = 0; i < this.stars.length; i++) {
-		this.stars[i].update();
-		this.stars[i].show();
-	  }
+	  this.stars.forEach(s => {
+		s.update();
+		s.show();
+	  });
+		this.drawStage();
 	  translate(-width / 2, -height / 2);
+	
+	  this.move();
+	}
+	
+	this.move = () => {};
+	this.drawStage = () => {};
+	
+	this.initHyperspeed = function(stageIndex, callback) {
+		this.stageIndex = stageIndex;
+		this.animation = 0;
+		this.move = this.hyperspeed_animation;
+		this.afterHyperspeed = callback;
+		console.log(this.animation);
+	}
+	
+	this.hyperspeed_animation = function() {
+		this.animation++;
+
+		var total = 100;
+		var step = 1;
+	
+		if(this.animation < total / 3) {
+			this.speed += step;
+		} else {
+			this.speed -= step;
+			if(this.speed < 1) this.speed = 1;
+		}
+		
+		if(this.animation > total / 2) {
+			this.drawStage = () => {
+				textAlign(CENTER);
+				stroke(255);
+				noStroke();
+				fill(50, 100, 200);
+				text("STAGE " + (this.stageIndex + 1), 0, 0);
+			};
+		}
+
+		if (this.animation >= total) {
+			this.afterHyperspeed();
+			this.move = () => {};
+			this.drawStage = () => {};
+			return;
+		}
+		
 	}
 }
         
@@ -298,6 +343,15 @@ function Game() {
     
     this.afterStage = function () {
         this.stageIndex ++;
+		
+		var that = this;
+		
+		starfield.initHyperspeed(this.stageIndex, () => {
+			scene = that;
+			that.beforeStage();			
+		});
+		
+		this.nextScene = starfield;
     }
 
     this.draw = function () {
@@ -447,7 +501,6 @@ function Game() {
         
         if (this.textArray.length && this.lives) {
             this.afterStage();
-            this.beforeStage();
         } else {
             this.nextScene = new Gameover(this.score);
         }
@@ -497,8 +550,6 @@ function keyPressed() {
         scene.keyPressed();
     }
 }
-
-
 
 function keyTyped() {
     if(scene.keyTyped) {

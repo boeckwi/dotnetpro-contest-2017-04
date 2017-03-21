@@ -70,7 +70,8 @@ namespace Überraschung
         {
             try
             {
-                var lines = input.Split(new[] { '\r', '\n' }).Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+                var lines = input.Split(new[] { '\r', '\n' }).Select(x => x.Trim())
+                    .Where(x => x != null && x.Length > 1).ToArray();
                 if (!lines.Any()) return null;
                 return lines;
             }

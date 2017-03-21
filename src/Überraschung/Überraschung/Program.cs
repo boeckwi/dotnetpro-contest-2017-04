@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Überraschung
 {
@@ -92,7 +93,8 @@ namespace Überraschung
 
         static string Cleanup(string line) // remove chars that are not easy to type
         {
-            return line.Replace("\"", "");
+            return Regex.Replace(line, @"[<>""']", "");
+            //return line.Replace("\"", "").Replace("'", ""); ;
         }
 
         public static string GetTemplate()

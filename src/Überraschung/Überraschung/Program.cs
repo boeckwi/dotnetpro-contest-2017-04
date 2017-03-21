@@ -31,7 +31,7 @@ namespace Überraschung
 
         static FileInfo GetNewOutputFilenameInDirectory(DirectoryInfo outputDirectory)
         {
-            var defaultFile = new FileInfo(Path.Combine(outputDirectory.FullName, "output.html"));
+            var defaultFile = new FileInfo(Path.Combine(outputDirectory.FullName, "keyboard_challenge.html"));
             if (!defaultFile.Exists) return defaultFile;
 
             return new FileInfo(Path.Combine(outputDirectory.FullName, Guid.NewGuid().ToString() + ".html"));

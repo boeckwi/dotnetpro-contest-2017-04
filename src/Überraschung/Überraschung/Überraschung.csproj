@@ -53,5 +53,8 @@
     <None Include="DemoInput.txt" />
     <EmbeddedResource Include="template.html" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="words2.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
